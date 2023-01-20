@@ -1,26 +1,21 @@
 import React from 'react';
-import logo from './logo.svg';
+import { useState, useEffect } from 'react';
+import { useQuery, gql } from '@apollo/client';
+import Kbar from './components/kbar/kbar.component';
+import StockSearhForm from './components/stock-search-form/stock-searh-form.component';
+import TestResultsTable from './components/test-results-table/test-results-table.component';
+
 import './App.css';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	console.log('app render');
+	return (
+		<div className="App">
+			<TestResultsTable />
+			{/* <StockSearhForm /> */}
+			{/* <Kbar /> */}
+		</div>
+	);
 }
 
 export default App;
