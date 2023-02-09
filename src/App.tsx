@@ -1,20 +1,16 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
-import { useQuery, gql } from '@apollo/client';
-import Kbar from './components/kbar/kbar.component';
-import StockSearhForm from './components/stock-search-form/stock-searh-form.component';
-import TestResultsTable from './components/test-results-table/test-results-table.component';
+import { Routes, Route } from 'react-router-dom';
+import Backtest from './routes/bcaktest/backtest.component';
+import Stock from './routes/stock/stock.component';
 
 import './App.css';
 
 function App() {
-	console.log('app render');
 	return (
-		<div className="App">
-			<TestResultsTable />
-			{/* <StockSearhForm /> */}
-			{/* <Kbar /> */}
-		</div>
+		<Routes>
+			<Route path="/backtest" element={<Backtest />} />
+			<Route path="/sotck" element={<Stock />} />
+		</Routes>
 	);
 }
 

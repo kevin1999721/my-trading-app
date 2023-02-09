@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, FC } from 'react';
 import { useQuery } from '@apollo/client';
-import { QUERY_KBARS } from '../../gql/query';
+import { QUERY_KBARS } from '../../utils/graphql/query';
 import { Kbar as KbarType } from '../../gql/graphql';
 import HighchartsReact from 'highcharts-react-official';
 import Highcharts from 'highcharts/highstock';
@@ -11,6 +11,16 @@ import { customStochastic } from '../../utils/highcharts/highcharts';
 indicators(Highcharts);
 accessibility(Highcharts);
 customStochastic(Highcharts);
+
+type PlotBox = {
+	rotation: number;
+	rotationOriginX: number;
+	rotationOriginY: number;
+	scaleX: number;
+	scaleY: number;
+	translateX: number;
+	translateY: number;
+};
 
 const defaultOptions: Highcharts.Options = {
 	chart: {
@@ -41,10 +51,10 @@ const defaultOptions: Highcharts.Options = {
 	},
 	yAxis: [
 		{
-			height: '60%',
+			height: '50%',
 		},
 		{
-			top: '60%',
+			top: '55%',
 			height: '20%',
 		},
 		{
@@ -58,6 +68,32 @@ const defaultOptions: Highcharts.Options = {
 			accessibility: {
 				exposeAsGroupOnly: true,
 			},
+		},
+	},
+	tooltip: {
+		shape: 'square',
+		headerShape: 'callout',
+		borderWidth: 0,
+		shadow: false,
+		positioner: function (width, height, point) {
+			let chart = this.chart,
+				position;
+
+			if (point.isHeader) {
+				position = {
+					x: point.plotX,
+					y: point.plotY,
+				};
+			} else {
+				console.log(point.series.getName(), point.series.getPlotBox());
+				let plotBox = point.series.getPlotBox() as unknown as PlotBox;
+
+				position = {
+					x: plotBox.translateX,
+					y: plotBox.translateY,
+				};
+			}
+			return position;
 		},
 	},
 	series: [
@@ -90,13 +126,15 @@ const covertKbarsVolumeToArray = (kbars: KbarType[]) => {
 
 type KbarProps = {
 	code: string;
+	startDate: string;
+	endDate: string;
 };
 
-const Kbar: FC<KbarProps> = ({ code }) => {
+const Kbar: FC<KbarProps> = ({ code, startDate, endDate }) => {
 	const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
 	const [options, setOptions] = useState<Highcharts.Options>(defaultOptions);
 	const { loading, error, data } = useQuery(QUERY_KBARS, {
-		variables: { code: code, startDate: '2023-01-09', endDate: '2023-01-17' },
+		variables: { code: code, startDate: startDate, endDate: endDate },
 	});
 	console.log(loading, error);
 
