@@ -16,6 +16,49 @@ export type Scalars = {
   DateTime: any;
 };
 
+export type Backtest = {
+  __typename?: 'Backtest';
+  information: BacktestInformation;
+  results: Array<BacktestResult>;
+};
+
+export type BacktestArgs = {
+  endDate: Scalars['DateTime'];
+  startDate: Scalars['DateTime'];
+  stockCode?: InputMaybe<Scalars['String']>;
+  stockSelectionStrategyId?: InputMaybe<Scalars['Int']>;
+  tradeStrategyId: Scalars['Int'];
+};
+
+export type BacktestInformation = {
+  __typename?: 'BacktestInformation';
+  dateRange: DateRange;
+  endDatetime: Scalars['DateTime'];
+  startDatetime: Scalars['DateTime'];
+  stockCode?: Maybe<Scalars['String']>;
+  stockSelectionStrategyId?: Maybe<Scalars['Int']>;
+  tradeStrategyId: Scalars['Int'];
+};
+
+export type BacktestResult = {
+  __typename?: 'BacktestResult';
+  code: Scalars['String'];
+  cost: Scalars['Float'];
+  entryPoint: Scalars['DateTime'];
+  id: Scalars['String'];
+  leavePoint: Scalars['DateTime'];
+  name: Scalars['String'];
+  profit: Scalars['Float'];
+  roi: Scalars['Float'];
+  tradeType: Scalars['Int'];
+};
+
+export type DateRange = {
+  __typename?: 'DateRange';
+  endDate: Scalars['DateTime'];
+  startDate: Scalars['DateTime'];
+};
+
 export type Kbar = {
   __typename?: 'Kbar';
   amount: Scalars['Float'];
@@ -29,9 +72,14 @@ export type Kbar = {
 
 export type Query = {
   __typename?: 'Query';
+  backtest: Backtest;
   kbars: Array<Kbar>;
   stocks: Array<Stock>;
-  testResults: TestResults;
+};
+
+
+export type QueryBacktestArgs = {
+  backtestArgs: BacktestArgs;
 };
 
 
@@ -39,17 +87,6 @@ export type QueryKbarsArgs = {
   code: Scalars['String'];
   endDate: Scalars['String'];
   startDate: Scalars['String'];
-};
-
-export type Result = {
-  __typename?: 'Result';
-  code: Scalars['String'];
-  cost: Scalars['Float'];
-  entryPoint: Scalars['DateTime'];
-  leavePoint: Scalars['DateTime'];
-  profit: Scalars['Float'];
-  roi: Scalars['Float'];
-  tradeType: Scalars['Int'];
 };
 
 export type Stock = {
@@ -65,12 +102,12 @@ export type Stock = {
   updateDate: Scalars['String'];
 };
 
-export type TestResults = {
-  __typename?: 'TestResults';
-  endTime: Scalars['DateTime'];
-  results: Array<Result>;
-  startTime: Scalars['DateTime'];
-};
+export type FetchBackTestQueryVariables = Exact<{
+  backtestArgs: BacktestArgs;
+}>;
+
+
+export type FetchBackTestQuery = { __typename?: 'Query', backtest: { __typename?: 'Backtest', information: { __typename?: 'BacktestInformation', startDatetime: any, endDatetime: any, tradeStrategyId: number, stockSelectionStrategyId?: number | null, stockCode?: string | null, dateRange: { __typename?: 'DateRange', startDate: any, endDate: any } }, results: Array<{ __typename?: 'BacktestResult', id: string, code: string, name: string, tradeType: number, entryPoint: any, leavePoint: any, roi: number, profit: number, cost: number }> } };
 
 export type FetchKbarsQueryVariables = Exact<{
   code: Scalars['String'];
@@ -86,12 +123,7 @@ export type FetchStocksQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type FetchStocksQuery = { __typename?: 'Query', stocks: Array<{ __typename?: 'Stock', category: string, code: string, dayTrade: boolean, exchange: string, limitDown: number, limitUp: number, name: string, reference: number, updateDate: string }> };
 
-export type FetchTestResultsQueryVariables = Exact<{ [key: string]: never; }>;
 
-
-export type FetchTestResultsQuery = { __typename?: 'Query', testResults: { __typename?: 'TestResults', startTime: any, endTime: any, results: Array<{ __typename?: 'Result', code: string, tradeType: number, entryPoint: any, leavePoint: any, roi: number, profit: number, cost: number }> } };
-
-
+export const FetchBackTestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"fetchBackTest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"backtestArgs"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"BacktestArgs"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backtest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"backtestArgs"},"value":{"kind":"Variable","name":{"kind":"Name","value":"backtestArgs"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"information"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"startDatetime"}},{"kind":"Field","name":{"kind":"Name","value":"endDatetime"}},{"kind":"Field","name":{"kind":"Name","value":"dateRange"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"startDate"}},{"kind":"Field","name":{"kind":"Name","value":"endDate"}}]}},{"kind":"Field","name":{"kind":"Name","value":"tradeStrategyId"}},{"kind":"Field","name":{"kind":"Name","value":"stockSelectionStrategyId"}},{"kind":"Field","name":{"kind":"Name","value":"stockCode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"results"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"tradeType"}},{"kind":"Field","name":{"kind":"Name","value":"entryPoint"}},{"kind":"Field","name":{"kind":"Name","value":"leavePoint"}},{"kind":"Field","name":{"kind":"Name","value":"roi"}},{"kind":"Field","name":{"kind":"Name","value":"profit"}},{"kind":"Field","name":{"kind":"Name","value":"cost"}}]}}]}}]}}]} as unknown as DocumentNode<FetchBackTestQuery, FetchBackTestQueryVariables>;
 export const FetchKbarsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"fetchKbars"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"code"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"startDate"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"endDate"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"kbars"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"code"},"value":{"kind":"Variable","name":{"kind":"Name","value":"code"}}},{"kind":"Argument","name":{"kind":"Name","value":"startDate"},"value":{"kind":"Variable","name":{"kind":"Name","value":"startDate"}}},{"kind":"Argument","name":{"kind":"Name","value":"endDate"},"value":{"kind":"Variable","name":{"kind":"Name","value":"endDate"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"open"}},{"kind":"Field","name":{"kind":"Name","value":"high"}},{"kind":"Field","name":{"kind":"Name","value":"low"}},{"kind":"Field","name":{"kind":"Name","value":"close"}},{"kind":"Field","name":{"kind":"Name","value":"volume"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}}]}}]}}]} as unknown as DocumentNode<FetchKbarsQuery, FetchKbarsQueryVariables>;
 export const FetchStocksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"fetchStocks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"stocks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"dayTrade"}},{"kind":"Field","name":{"kind":"Name","value":"exchange"}},{"kind":"Field","name":{"kind":"Name","value":"limitDown"}},{"kind":"Field","name":{"kind":"Name","value":"limitUp"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"reference"}},{"kind":"Field","name":{"kind":"Name","value":"updateDate"}}]}}]}}]} as unknown as DocumentNode<FetchStocksQuery, FetchStocksQueryVariables>;
-export const FetchTestResultsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"fetchTestResults"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"testResults"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"startTime"}},{"kind":"Field","name":{"kind":"Name","value":"endTime"}},{"kind":"Field","name":{"kind":"Name","value":"results"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"tradeType"}},{"kind":"Field","name":{"kind":"Name","value":"entryPoint"}},{"kind":"Field","name":{"kind":"Name","value":"leavePoint"}},{"kind":"Field","name":{"kind":"Name","value":"roi"}},{"kind":"Field","name":{"kind":"Name","value":"profit"}},{"kind":"Field","name":{"kind":"Name","value":"cost"}}]}}]}}]}}]} as unknown as DocumentNode<FetchTestResultsQuery, FetchTestResultsQueryVariables>;

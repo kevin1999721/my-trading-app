@@ -1,8 +1,11 @@
 import { useState, useEffect, ReactEventHandler } from 'react';
-import { useQuery } from '@apollo/client';
-import { QUERY_BACKTEST_RESULTS } from '../../gql/query';
+import { useAppSelector } from '../../store/hooks';
+import { selectIsLoading, selectBacktests } from '../../store/backtests/backtests.select';
+import { BacktestResult } from '../../gql/graphql';
+
+// import { testData } from './testData';
+
 import { DataGrid, GridColDef, GridSelectionModel } from '@mui/x-data-grid';
-import { testData } from './testData';
 import { GridValueFormatterParams } from '@mui/x-data-grid/models';
 import Kbar from '../kbar/kbar.component';
 
@@ -52,17 +55,6 @@ const statisticDataGridColumn: GridColDef[] = [
 	{ field: 'winningPercentage', headerName: '勝率' },
 ];
 
-type Data = {
-	id: string | number;
-	code: string;
-	tradeType: number;
-	entryPoint: any;
-	leavePoint: any;
-	roi: number;
-	profit: number;
-	cost: number;
-};
-
 type statisticalData = {
 	id: string | number;
 	tradeType: number;
@@ -76,11 +68,11 @@ type statisticalData = {
 
 type GetDataById<T> = (dataset: T[], id: string | number) => T | null;
 
-const getDataById: GetDataById<Data> = (dataset, id) => {
+const getDataById: GetDataById<BacktestResult> = (dataset, id) => {
 	return dataset.find(data => data.id === id) || null;
 };
 
-const countBackTestResults = (dataset: Data[]) => {
+const countBackTestResults = (dataset: BacktestResult[]) => {
 	let statisticalData: statisticalData[] = [];
 	for (let i = 0; i < 3; i++) {
 		statisticalData.push({
@@ -117,27 +109,44 @@ const countBackTestResults = (dataset: Data[]) => {
 };
 
 const TestResultsTable = () => {
-	// const { loading, error, data } = useQuery(QUERY_BACKTEST_RESULTS);
-	// console.log(loading, error, data);
+	const isLoading = useAppSelector(selectIsLoading);
+	const backtests = useAppSelector(selectBacktests);
+	console.log(isLoading, backtests);
 	// const [selectionModel, setSelectionModel] = useState<GridSelectionModel>([]);
-	const [selectedData, setSelectedData] = useState<Data | null>(null);
-
+	const [selectedData, setSelectedData] = useState<BacktestResult | null>(null);
 	return (
 		<div>
-			<div style={{ height: 350, width: '100%' }}>
-				<DataGrid
-					columns={dataGridColumn}
-					rows={testData.results}
-					onSelectionModelChange={newSelectionModel => {
-						if (newSelectionModel.length > 0)
-							setSelectedData(getDataById(testData.results, newSelectionModel[0]));
-					}}
+			{isLoading && <span>isloading ...</span>}
+			{backtests.length > 0 && (
+				<>
+					<div style={{ height: 350, width: '100%' }}>
+						<DataGrid
+							columns={dataGridColumn}
+							rows={backtests[backtests.length - 1].results}
+							onSelectionModelChange={newSelectionModel => {
+								if (newSelectionModel.length > 0)
+									setSelectedData(
+										getDataById(backtests[backtests.length - 1].results, newSelectionModel[0])
+									);
+							}}
+						/>
+					</div>
+					<div style={{ height: 350, width: 500 }}>
+						<DataGrid
+							columns={statisticDataGridColumn}
+							rows={countBackTestResults(backtests[backtests.length - 1].results)}
+						/>
+					</div>
+				</>
+			)}
+
+			{selectedData?.code && (
+				<Kbar
+					code={selectedData.code}
+					startDate={new Date(selectedData.entryPoint).toLocaleDateString('sv')}
+					endDate={new Date(selectedData.leavePoint).toLocaleDateString('sv')}
 				/>
-			</div>
-			<div style={{ height: 350, width: 500 }}>
-				<DataGrid columns={statisticDataGridColumn} rows={countBackTestResults(testData.results)} />
-			</div>
-			{selectedData?.code && <Kbar code={selectedData.code} />}
+			)}
 		</div>
 	);
 };

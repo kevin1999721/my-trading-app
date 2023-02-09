@@ -1,12 +1,16 @@
-import { useState, useEffect, ReactEventHandler } from 'react';
+import { useState, useEffect, ReactEventHandler, FC } from 'react';
 import { useQuery } from '@apollo/client';
-import { QUERY_STOCKS } from '../../gql/query';
+import { QUERY_STOCKS } from '../../utils/graphql/query';
 import { Stock as StockType } from '../../gql/graphql';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 
-const StockSearhForm = () => {
+type StockSearhForm = {
+	setStockCodeState?: (code: string | null) => void;
+};
+
+const StockSearhForm: FC<StockSearhForm> = ({ setStockCodeState }) => {
 	const { loading, error, data } = useQuery(QUERY_STOCKS);
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -17,16 +21,26 @@ const StockSearhForm = () => {
 		}
 	};
 
+	const onChange = (e: React.SyntheticEvent, stock: StockType | null, reason: string) => {
+		console.log(stock);
+		if (setStockCodeState) {
+			if (stock) {
+				setStockCodeState(stock.code);
+			} else setStockCodeState(null);
+		}
+	};
+
 	return (
-		<div>
+		<>
 			{data && data.stocks && (
 				<Autocomplete
 					autoComplete
 					id="stock-search-input"
-					options={data.stocks}
+					options={data.stocks as StockType[]}
 					open={isOpen}
 					sx={{ width: 300 }}
 					onInputChange={onInputChage}
+					onChange={onChange}
 					onClose={() => setIsOpen(false)}
 					getOptionLabel={(option: StockType) => {
 						return option.code;
@@ -54,7 +68,7 @@ const StockSearhForm = () => {
 					}}
 				/>
 			)}
-		</div>
+		</>
 	);
 };
 
