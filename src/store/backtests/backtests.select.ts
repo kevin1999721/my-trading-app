@@ -8,6 +8,12 @@ export const selectBacktests = createSelector(
 	backtestsReducer => backtestsReducer.backtests
 );
 
+export const selectBacktestsInformation = createSelector([selectBacktests], backtests => {
+	return backtests.map(backtest => {
+		return { id: backtest.id, ...backtest.information };
+	});
+});
+
 export const selectIsLoading = createSelector(
 	[selectBacktestsReducer],
 	backtestsReducer => backtestsReducer.isLoading

@@ -6,7 +6,7 @@ import { useAppDispatch } from '../../store/hooks';
 import { addBacktest, setIsLoading, setError } from '../../store/backtests/bcaktests.slice';
 
 import { SelectInputProps } from '@mui/material/Select/SelectInput';
-import { Box, Button } from '@mui/material';
+import { Box, Button, Paper } from '@mui/material';
 import BacktestFormInput from '../backtest-form-input/backtest-form-input';
 import DateRangePicker from '../date-range-picker/date-range-picker';
 import BacktestStockPicker from '../backtest-stock-picker/backtest-stock-picker';
@@ -155,15 +155,15 @@ const BacktestForm = () => {
 	};
 
 	return (
-		<Box
+		<Paper
 			component="form"
 			onSubmit={onFormSubmit}
 			sx={{
 				display: 'flex',
 				flexDirection: 'column',
-				alignItems: 'flex-start',
+				alignItems: 'stretch',
 				gap: '10px',
-				maxWidth: 600,
+				maxWidth: 500,
 				padding: '10px',
 			}}
 		>
@@ -186,7 +186,7 @@ const BacktestForm = () => {
 			<Button type="submit" variant="outlined">
 				回測
 			</Button>
-		</Box>
+		</Paper>
 	);
 };
 

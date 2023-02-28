@@ -1,5 +1,5 @@
 import { useState, useEffect, FC } from 'react';
-import { TextField, Box } from '@mui/material';
+import { TextField, Box, Paper } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
@@ -21,11 +21,14 @@ const DateRangePicker: FC<DateRangePickerProps> = ({ setStartDate, setEndDate })
 		setEndDate(dateRange.endDate);
 	}, [dateRange]);
 
-	// if (dateRange.startDate)
-	// 	console.log(dateRange.startDate.toISOString())
-
 	return (
-		<div>
+		<Box
+			sx={{
+				display: 'flex',
+				justifyContent: 'center',
+				gap: '20px',
+			}}
+		>
 			<LocalizationProvider dateAdapter={AdapterDateFns}>
 				<DatePicker
 					label="開始"
@@ -37,7 +40,14 @@ const DateRangePicker: FC<DateRangePickerProps> = ({ setStartDate, setEndDate })
 							else return { ...pre, startDate: newValue };
 						});
 					}}
-					renderInput={params => <TextField {...params} />}
+					inputFormat="yyyy/MM/dd"
+					renderInput={params => (
+						<TextField
+							sx={{ width: 150, flex: 1 }}
+							{...params}
+							inputProps={{ ...params.inputProps, placeholder: 'yyyy/mm/dd', readOnly: true }}
+						/>
+					)}
 				/>
 				<DatePicker
 					label="結束"
@@ -49,10 +59,17 @@ const DateRangePicker: FC<DateRangePickerProps> = ({ setStartDate, setEndDate })
 							else return { ...pre, endDate: newValue };
 						});
 					}}
-					renderInput={params => <TextField {...params} />}
+					inputFormat="yyyy/MM/dd"
+					renderInput={params => (
+						<TextField
+							sx={{ width: 150, flex: 1 }}
+							{...params}
+							inputProps={{ ...params.inputProps, placeholder: 'yyyy/mm/dd', readOnly: true }}
+						/>
+					)}
 				/>
 			</LocalizationProvider>
-		</div>
+		</Box>
 	);
 };
 
