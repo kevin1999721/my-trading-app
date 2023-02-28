@@ -1,13 +1,66 @@
 import { useState, useEffect, ReactEventHandler } from 'react';
 import { useAppSelector } from '../../store/hooks';
-import { selectIsLoading, selectBacktests } from '../../store/backtests/backtests.select';
-import { BacktestResult } from '../../gql/graphql';
-
-// import { testData } from './testData';
+import {
+	selectIsLoading,
+	selectBacktests,
+	selectBacktestsInformation,
+} from '../../store/backtests/backtests.select';
+import { BacktestResult, BacktestInformation, DateRange } from '../../gql/graphql';
 
 import { DataGrid, GridColDef, GridSelectionModel } from '@mui/x-data-grid';
-import { GridValueFormatterParams } from '@mui/x-data-grid/models';
+import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid/models';
 import Kbar from '../kbar/kbar.component';
+
+export const localDateStringOptions: Intl.DateTimeFormatOptions = {
+	year: 'numeric',
+	month: '2-digit',
+	day: '2-digit',
+};
+
+export const localStringOptions: Intl.DateTimeFormatOptions = {
+	year: 'numeric',
+	month: '2-digit',
+	day: '2-digit',
+	hour: '2-digit',
+	minute: '2-digit',
+	second: '2-digit',
+	hour12: false,
+};
+
+const backtestHistoryGridColumn: GridColDef[] = [
+	{
+		field: 'startDatetime',
+		headerName: '回測開始',
+		width: 180,
+		valueGetter: ({ value }) =>
+			value && new Date(value).toLocaleString('zh-TW', localStringOptions),
+	},
+	{
+		field: 'endDatetime',
+		headerName: '回測結束',
+		width: 180,
+		valueGetter: ({ value }) =>
+			value && new Date(value).toLocaleString('zh-TW', localStringOptions),
+	},
+	{
+		field: 'dateRange',
+		headerName: '回測區間',
+		width: 200,
+		valueGetter: ({ value }: GridValueGetterParams<DateRange>) =>
+			value &&
+			`${new Date(value.startDate).toLocaleDateString(
+				'zh-TW',
+				localDateStringOptions
+			)} ~ ${new Date(value.endDate).toLocaleDateString('zh-TW', localDateStringOptions)}`,
+	},
+	{
+		field: 'stockCodeOrSelectionStrategyId',
+		headerName: '股號或選股策略',
+		valueGetter: (params: GridValueGetterParams) =>
+			params.row.stockCode || params.row.stockSelectionStrategyId,
+	},
+	{ field: 'tradeStrategyId', headerName: '交易策略' },
+];
 
 const dataGridColumn: GridColDef[] = [
 	{ field: 'code', headerName: '股號' },
@@ -19,21 +72,22 @@ const dataGridColumn: GridColDef[] = [
 	{
 		field: 'entryPoint',
 		headerName: '進場點',
-		width: 200,
 		type: 'dateTime',
-		valueGetter: ({ value }) => value && new Date(value),
+		width: 200,
+		valueGetter: ({ value }) =>
+			value && new Date(value).toLocaleString('zh-tw', localStringOptions),
 	},
 	{
 		field: 'leavePoint',
 		headerName: '出場點',
 		width: 200,
-		type: 'dateTime',
-		valueGetter: ({ value }) => value && new Date(value),
+		valueGetter: ({ value }) =>
+			value && new Date(value).toLocaleString('zh-tw', localStringOptions),
 	},
 	{
 		field: 'roi',
 		headerName: '投報率',
-		valueFormatter: ({ value }: GridValueFormatterParams<Number>) => (value ? `${value} % ` : ''),
+		valueFormatter: ({ value }: GridValueFormatterParams<Number>) => `${value} % `,
 	},
 	{ field: 'profit', headerName: '獲利' },
 	{ field: 'cost', headerName: '成本' },
@@ -52,7 +106,11 @@ const statisticDataGridColumn: GridColDef[] = [
 	{ field: 'roi', headerName: '投報率' },
 	{ field: 'totalProfit', headerName: '總獲利' },
 	{ field: 'totalCost', headerName: '總成本' },
-	{ field: 'winningPercentage', headerName: '勝率' },
+	{
+		field: 'winningPercentage',
+		headerName: '勝率',
+		valueFormatter: ({ value }: GridValueFormatterParams<Number>) => `${value} % `,
+	},
 ];
 
 type statisticalData = {
@@ -111,7 +169,8 @@ const countBackTestResults = (dataset: BacktestResult[]) => {
 const TestResultsTable = () => {
 	const isLoading = useAppSelector(selectIsLoading);
 	const backtests = useAppSelector(selectBacktests);
-	console.log(isLoading, backtests);
+	const backtestsInformation = useAppSelector(selectBacktestsInformation);
+	console.log(isLoading, backtests, backtestsInformation);
 	// const [selectionModel, setSelectionModel] = useState<GridSelectionModel>([]);
 	const [selectedData, setSelectedData] = useState<BacktestResult | null>(null);
 	return (
@@ -119,6 +178,9 @@ const TestResultsTable = () => {
 			{isLoading && <span>isloading ...</span>}
 			{backtests.length > 0 && (
 				<>
+					<div style={{ height: 350, width: '100%' }}>
+						<DataGrid columns={backtestHistoryGridColumn} rows={backtestsInformation} />
+					</div>
 					<div style={{ height: 350, width: '100%' }}>
 						<DataGrid
 							columns={dataGridColumn}

@@ -6,11 +6,14 @@ import HighchartsReact from 'highcharts-react-official';
 import Highcharts from 'highcharts/highstock';
 import indicators from 'highcharts/indicators/indicators-all';
 import accessibility from 'highcharts/modules/accessibility';
-import { customStochastic } from '../../utils/highcharts/highcharts';
+import { customHighcharts } from '../../utils/highcharts/highcharts';
+import './kbar.style.css';
 
 indicators(Highcharts);
 accessibility(Highcharts);
-customStochastic(Highcharts);
+customHighcharts(Highcharts);
+
+console.log(Highcharts.Pointer.prototype);
 
 type PlotBox = {
 	rotation: number;
@@ -23,13 +26,34 @@ type PlotBox = {
 };
 
 const defaultOptions: Highcharts.Options = {
+	credits: {
+		enabled: false,
+	},
 	chart: {
-		height: 600,
+		styledMode: false,
+		height: 800,
+		spacing: [0, 0, 0, 0],
+		style: {
+			fontFamily: [
+				'"Noto Sans TC"',
+				'sans-serif',
+				'"Segoe UI"',
+				'Roboto',
+				'"Helvetica Neue"',
+				'Arial',
+				'"Apple Color Emoji"',
+				'"Segoe UI Emoji"',
+				'"Segoe UI Symbol"',
+			].join(','),
+		},
 	},
 	title: {
 		text: 'AAPL stock price by minute',
+		floating: true,
+		useHTML: true,
 	},
 	rangeSelector: {
+		floating: true,
 		buttons: [
 			{
 				type: 'hour',
@@ -51,46 +75,104 @@ const defaultOptions: Highcharts.Options = {
 	},
 	yAxis: [
 		{
-			height: '50%',
+			top: 35,
+			height: 200,
+			crosshair: {
+				label: {
+					enabled: true,
+				},
+			},
 		},
 		{
-			top: '55%',
-			height: '20%',
+			top: 270,
+			height: 100,
 		},
 		{
-			top: '80%',
-			height: '20%',
+			top: 405,
+			height: 100,
 		},
 	],
+	legend: {
+		enabled: true,
+		align: 'left',
+		layout: 'horizontal',
+		floating: true,
+	},
 	plotOptions: {
 		series: {
-			showInLegend: true,
-			accessibility: {
-				exposeAsGroupOnly: true,
+			// point: {
+			// 	events: {
+			// 		mouseOver: function () {
+			// 			console.log(this);
+			// 		},
+			// 	},
+			// },
+
+			showInLegend: false,
+			marker: {
+				enabled: false,
+				states: {
+					hover: {
+						enabled: false,
+					},
+					select: {
+						enabled: false,
+					},
+				},
 			},
+		},
+		sma: {
+			showCheckbox: true,
+			showInLegend: true,
+			enableMouseTracking: false,
 		},
 	},
 	tooltip: {
+		valueDecimals: 2,
 		shape: 'square',
 		headerShape: 'callout',
 		borderWidth: 0,
+		useHTML: true,
+		hideDelay: 0,
+		padding: 0,
 		shadow: false,
+		backgroundColor: '',
+		borderColor: '',
+		style: {
+			fontSize: '',
+		},
+		formatter: function () {
+			console.log(this.points);
+			return [];
+			// return [`<b>${new Date(this.x as number)}</b>`].concat(
+			// 	this.points
+			// 		? this.points.map(function (point) {
+			// 				// console.log(point);
+			// 				return `<b>${point.series.name}</b> : ${point.y}`;
+			// 		  })
+			// 		: []
+			// );
+		},
 		positioner: function (width, height, point) {
-			let chart = this.chart,
-				position;
+			let chart = this.chart;
+			let position;
 
 			if (point.isHeader) {
 				position = {
-					x: point.plotX,
+					x: Math.max(
+						0,
+						Math.min(
+							point.plotX - chart.plotLeft - width / 2,
+							chart.plotLeft + chart.plotWidth - width
+						)
+					),
 					y: point.plotY,
 				};
 			} else {
-				console.log(point.series.getName(), point.series.getPlotBox());
 				let plotBox = point.series.getPlotBox() as unknown as PlotBox;
-
 				position = {
-					x: plotBox.translateX,
-					y: plotBox.translateY,
+					x: chart.plotLeft,
+					y: plotBox.translateY - chart.plotTop - 35,
 				};
 			}
 			return position;
@@ -102,9 +184,6 @@ const defaultOptions: Highcharts.Options = {
 			name: 'AAPL Stock Price',
 			dataGrouping: {
 				enabled: false,
-			},
-			tooltip: {
-				valueDecimals: 2,
 			},
 		},
 	],
@@ -132,6 +211,7 @@ type KbarProps = {
 
 const Kbar: FC<KbarProps> = ({ code, startDate, endDate }) => {
 	const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
+	console.log(chartComponentRef.current);
 	const [options, setOptions] = useState<Highcharts.Options>(defaultOptions);
 	const { loading, error, data } = useQuery(QUERY_KBARS, {
 		variables: { code: code, startDate: startDate, endDate: endDate },
@@ -149,6 +229,7 @@ const Kbar: FC<KbarProps> = ({ code, startDate, endDate }) => {
 						type: 'candlestick',
 						name: 'AAPL Stock Price',
 						id: 'candlestick',
+						zIndex: 0,
 						data: chartData,
 						dataGrouping: {
 							enabled: false,
@@ -164,9 +245,6 @@ const Kbar: FC<KbarProps> = ({ code, startDate, endDate }) => {
 						params: {
 							period: 5,
 						},
-						marker: {
-							enabled: false,
-						},
 					},
 					{
 						type: 'sma',
@@ -175,9 +253,6 @@ const Kbar: FC<KbarProps> = ({ code, startDate, endDate }) => {
 						params: {
 							period: 20,
 						},
-						marker: {
-							enabled: false,
-						},
 					},
 					{
 						type: 'sma',
@@ -185,9 +260,6 @@ const Kbar: FC<KbarProps> = ({ code, startDate, endDate }) => {
 						zIndex: 3,
 						params: {
 							period: 60,
-						},
-						marker: {
-							enabled: false,
 						},
 					},
 					{
@@ -201,6 +273,7 @@ const Kbar: FC<KbarProps> = ({ code, startDate, endDate }) => {
 						type: 'stochastic',
 						linkedTo: 'candlestick',
 						id: 'kd',
+						name: 'stochastic',
 						params: {
 							periods: [9, 3],
 						},

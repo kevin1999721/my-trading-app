@@ -73,7 +73,7 @@ const BacktestStockPicker: FC<BacktestStockPicker> = ({
 		<Box
 			sx={{
 				display: 'flex',
-				alignItems: 'center',
+				flexDirection: 'column',
 			}}
 		>
 			<FormControl>

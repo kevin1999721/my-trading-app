@@ -3,6 +3,7 @@ import { gql } from '../../gql/gql';
 export const QUERY_BACKTEST = gql(`
 	query fetchBackTest($backtestArgs: BacktestArgs!) {
 		backtest(backtestArgs: $backtestArgs) {
+                  id
                   information {
                         startDatetime
                         endDatetime

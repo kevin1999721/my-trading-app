@@ -16,7 +16,7 @@ type InputProps = {
 
 const BacktestFormInput: FC<InputProps> = ({ stratgies, inputOptions }) => {
 	return (
-		<FormControl sx={{ m: 1, minWidth: 150 }}>
+		<FormControl sx={{ m: 1, minWidth: 150, maxWidth: 200 }}>
 			<InputLabel htmlFor={inputOptions.id}>{inputOptions.label}</InputLabel>
 			<Select {...inputOptions} defaultValue="">
 				{stratgies.map(strategy => {
