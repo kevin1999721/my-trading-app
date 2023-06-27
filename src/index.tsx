@@ -8,14 +8,13 @@ import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import { Provider } from 'react-redux';
 import { store, persistor } from './store/store';
 import { PersistGate } from 'redux-persist/integration/react';
-import { theme } from './utils/theme/theme';
-import { ThemeProvider } from '@mui/material/styles';
 
 const client = new ApolloClient({
-	uri: 'http://127.0.0.1:8000/graphql',
+	uri: process.env.REACT_APP_GRAPHQL_SERVER_URI,
 	cache: new InMemoryCache({
 		addTypename: false,
 	}),
+	connectToDevTools: true,
 });
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
@@ -26,9 +25,7 @@ root.render(
 			<PersistGate persistor={persistor}>
 				<ApolloProvider client={client}>
 					<BrowserRouter>
-						<ThemeProvider theme={theme}>
-							<App />
-						</ThemeProvider>
+						<App />
 					</BrowserRouter>
 				</ApolloProvider>
 			</PersistGate>

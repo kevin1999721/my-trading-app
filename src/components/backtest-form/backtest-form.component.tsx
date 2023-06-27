@@ -1,15 +1,24 @@
-import { FormEventHandler, useState, useEffect } from 'react';
-import { QUERY_BACKTEST } from '../../utils/graphql/query';
+import { useState, useEffect, useRef, FormEventHandler } from 'react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useLazyQuery } from '@apollo/client';
-import { BacktestArgs } from '../../gql/graphql';
-import { useAppDispatch } from '../../store/hooks';
+import { useMediaQuery } from '@mui/material';
+import { QUERY_BACKTEST } from '../../utils/graphql/query.util';
+import { BacktestArgs, Backtest } from '../../gql/graphql';
 import { addBacktest, setIsLoading, setError } from '../../store/backtests/bcaktests.slice';
+import { sxDashboard } from '../../utils/theme/theme.util';
+import {
+	thunkGetStockSelectionStrategiesDocs,
+	thunkGetTradeStrategiesDocs,
+} from '../../store/backtests/bcaktests.slice';
+import { selectTradeStrategies } from '../../store/backtests/backtests.select';
 
 import { SelectInputProps } from '@mui/material/Select/SelectInput';
-import { Box, Button, Paper } from '@mui/material';
+import { Box, Button, Divider, CircularProgress, Snackbar, Alert } from '@mui/material';
+
 import BacktestFormInput from '../backtest-form-input/backtest-form-input';
 import DateRangePicker from '../date-range-picker/date-range-picker';
 import BacktestStockPicker from '../backtest-stock-picker/backtest-stock-picker';
+import BacktestStrategyInfo from '../backtest-strategy-info/backtest-strategy-info.component';
 
 export const backtestFormFieldsName = {
 	startDate: 'startDate',
@@ -22,8 +31,8 @@ export const backtestFormFieldsName = {
 type DefaulBacktestFormFields = {
 	startDate: string | null;
 	endDate: string | null;
-	tradeStrategyId: number | null;
-	stockSelectionStrategyId: number | null;
+	tradeStrategyId: number | string | null;
+	stockSelectionStrategyId: number | string | null;
 	stockCode: string | null;
 };
 
@@ -33,34 +42,6 @@ const defaulBacktestFormFields: DefaulBacktestFormFields = {
 	tradeStrategyId: null,
 	stockSelectionStrategyId: null,
 	stockCode: null,
-};
-
-const tradeStrategies = [
-	{
-		id: 1,
-		type: 1,
-		name: '自訂策略 1',
-		description: '運用很多條件 ...',
-	},
-	{
-		id: 2,
-		type: 0,
-		name: 'KD',
-		description: 'KD技術指標',
-	},
-	{
-		id: 3,
-		type: 0,
-		name: 'MACD',
-		description: 'MACD技術指標',
-	},
-];
-
-export type Strategy = {
-	id: number;
-	type: number;
-	name: string;
-	description: string;
 };
 
 const checkIsFormFieldsValid = (
@@ -84,29 +65,21 @@ const checkIsFormFieldsValid = (
 };
 
 const BacktestForm = () => {
-	const [queryBacktestResults, { loading, error, data }] = useLazyQuery(QUERY_BACKTEST);
-	const [formfiledsValue, setFormFiledsVlaue] = useState(defaulBacktestFormFields);
 	const dispatch = useAppDispatch();
-	// console.log(loading, error, data);
-	console.log(formfiledsValue);
+	const isMediaQueryMatch = useMediaQuery('(max-width : 800px)');
+	const tradeStrategies = useAppSelector(selectTradeStrategies);
+	const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
+	const [formfiledsValue, setFormFiledsVlaue] = useState(defaulBacktestFormFields);
+	const [queryBacktestResults, { loading, error, data }] = useLazyQuery(QUERY_BACKTEST);
+	const preBacktestResults = useRef<Backtest | null>(null);
 
-	useEffect(() => {
-		console.log('setIsLoading fired!');
-		dispatch(setIsLoading(loading));
-	}, [loading]);
-
-	useEffect(() => {
-		console.log('addBacktest fired!');
-		if (!loading && data && data.backtest) dispatch(addBacktest(data.backtest));
-	}, [loading]);
-
-	useEffect(() => {
-		console.log('setError fired!');
-		dispatch(setError(error));
-	}, [error]);
+	const alertCloseHandler = () => {
+		setIsAlertOpen(false);
+	};
 
 	const onSelectChange: SelectInputProps<number>['onChange'] = event => {
 		const { name, value } = event.target;
+
 		setFormFiledsVlaue(pre => {
 			return { ...formfiledsValue, [name]: value };
 		});
@@ -143,9 +116,8 @@ const BacktestForm = () => {
 	};
 
 	const onFormSubmit: FormEventHandler<HTMLFormElement> = event => {
-		console.log('form submit');
 		event.preventDefault();
-		if (checkIsFormFieldsValid(formfiledsValue)) {
+		if (!loading && checkIsFormFieldsValid(formfiledsValue)) {
 			queryBacktestResults({
 				variables: {
 					backtestArgs: formfiledsValue,
@@ -154,39 +126,88 @@ const BacktestForm = () => {
 		}
 	};
 
+	useEffect(() => {
+		dispatch(setIsLoading(loading));
+	}, [loading]);
+
+	useEffect(() => {
+		if (!loading && data?.backtest && preBacktestResults.current !== data.backtest) {
+			setIsAlertOpen(true);
+			dispatch(addBacktest(data.backtest));
+			preBacktestResults.current = data.backtest;
+		}
+	}, [data?.backtest]);
+
+	useEffect(() => {
+		dispatch(setError(error));
+	}, [error]);
+
+	useEffect(() => {
+		dispatch(thunkGetTradeStrategiesDocs());
+		dispatch(thunkGetStockSelectionStrategiesDocs());
+	}, []);
+
 	return (
-		<Paper
-			component="form"
-			onSubmit={onFormSubmit}
+		<Box
 			sx={{
+				...sxDashboard,
 				display: 'flex',
-				flexDirection: 'column',
-				alignItems: 'stretch',
-				gap: '10px',
-				maxWidth: 500,
-				padding: '10px',
+				gap: '25px',
+				flexDirection: isMediaQueryMatch ? 'column' : 'row',
 			}}
 		>
-			<DateRangePicker setStartDate={setStartDate} setEndDate={setEndDate} />
-			<BacktestStockPicker
-				onSelectChange={onSelectChange}
-				setSelectedStockCode={setSelectedStockCode}
-				resetStcoks={resetStcoks}
-			/>
-			<BacktestFormInput
-				key="trade-strategy-select"
-				stratgies={tradeStrategies}
-				inputOptions={{
-					id: 'trade-strategy-select',
-					label: '交易策略',
-					onChange: onSelectChange,
-					name: backtestFormFieldsName.tradeStrategyId,
+			<Box
+				component="form"
+				onSubmit={onFormSubmit}
+				sx={{
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'stretch',
+					gap: '20px',
+					maxWidth: 500,
 				}}
+			>
+				<DateRangePicker setStartDate={setStartDate} setEndDate={setEndDate} />
+				<BacktestStockPicker
+					onSelectChange={onSelectChange}
+					setSelectedStockCode={setSelectedStockCode}
+					resetStcoks={resetStcoks}
+				/>
+				<BacktestFormInput
+					key="trade-strategy-select"
+					stratgies={tradeStrategies}
+					inputOptions={{
+						id: 'trade-strategy-select',
+						label: '交易策略',
+						onChange: onSelectChange,
+						name: backtestFormFieldsName.tradeStrategyId,
+						value: formfiledsValue.tradeStrategyId || '',
+					}}
+				/>
+				<Button type="submit" variant="outlined" disabled={loading}>
+					{loading ? <CircularProgress style={{ width: '20px', height: '20px' }} /> : '回測'}
+				</Button>
+			</Box>
+			<Divider orientation={isMediaQueryMatch ? 'horizontal' : 'vertical'} flexItem />
+			<BacktestStrategyInfo
+				tradeStrategyId={formfiledsValue.tradeStrategyId}
+				stockSelectionStrategyId={formfiledsValue.stockSelectionStrategyId}
 			/>
-			<Button type="submit" variant="outlined">
-				回測
-			</Button>
-		</Paper>
+			<Snackbar
+				open={isAlertOpen}
+				anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+				onClose={alertCloseHandler}
+			>
+				<Alert onClose={alertCloseHandler} severity="success" sx={{ width: '100%', boxShadow: 3 }}>
+					回測完成，請至回測紀錄查看 !
+				</Alert>
+			</Snackbar>
+			<Snackbar open={loading} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+				<Alert severity="info" sx={{ width: '100%', boxShadow: 3 }}>
+					回測進行中，請勿關閉頁面或跳至其他分頁 !
+				</Alert>
+			</Snackbar>
+		</Box>
 	);
 };
 

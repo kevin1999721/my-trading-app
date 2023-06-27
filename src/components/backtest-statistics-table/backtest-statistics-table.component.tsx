@@ -1,13 +1,8 @@
-import { useState, useEffect, FC } from 'react';
-import { useAppSelector } from '../../store/hooks';
-import {
-	selectIsLoading,
-	selectBacktests,
-	selectBacktestsInformation,
-} from '../../store/backtests/backtests.select';
-import { BacktestResult, BacktestInformation, DateRange } from '../../gql/graphql';
-import { DataGrid, GridColDef, GridSelectionModel } from '@mui/x-data-grid';
-import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid/models';
+import { FC } from 'react';
+import { BacktestResult } from '../../gql/graphql';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { GridValueFormatterParams } from '@mui/x-data-grid/models';
+import { sxDashboard } from '../../utils/theme/theme.util';
 
 import Box from '@mui/material/Box';
 import BacktestTableTitle from '../backtest-table-title/backtest-table-title.component';
@@ -71,8 +66,12 @@ const countBackTestResults = (dataset: BacktestResult[]) => {
 	});
 
 	statisticalData = statisticalData.map(data => {
-		let roi = Math.round((data.totalProfit / data.totalCost) * 10000) / 100;
-		let winningPercentage = Math.round((data.winningNumber / data.TradeNumber) * 10000) / 100;
+		let roi =
+			data.totalProfit === 0 ? 0 : Math.round((data.totalProfit / data.totalCost) * 10000) / 100;
+		let winningPercentage =
+			data.winningNumber === 0
+				? 0
+				: Math.round((data.winningNumber / data.TradeNumber) * 10000) / 100;
 		return { ...data, roi, winningPercentage };
 	});
 
@@ -87,13 +86,15 @@ const BacktestStatisticsTable: FC<BacktestStatisticsTableProps> = ({ backtestRes
 	return (
 		<>
 			{backtestResults.length > 0 && (
-				<Box sx={{ width: 500 }}>
+				<Box sx={{ width: '100%' }}>
 					<BacktestTableTitle text={'統計'} />
-					<DataGrid
-						autoHeight
-						columns={statisticDataGridColumn}
-						rows={countBackTestResults(backtestResults)}
-					/>
+					<Box sx={{ ...sxDashboard }}>
+						<DataGrid
+							autoHeight
+							columns={statisticDataGridColumn}
+							rows={countBackTestResults(backtestResults)}
+						/>
+					</Box>
 				</Box>
 			)}
 		</>
