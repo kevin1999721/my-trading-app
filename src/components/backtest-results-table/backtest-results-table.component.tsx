@@ -1,23 +1,20 @@
-import { useState, useEffect, FC } from 'react';
+import { useState, useEffect, useMemo, FC } from 'react';
+import { useTheme } from '@mui/material';
 import { useAppSelector } from '../../store/hooks';
-import {
-	selectIsLoading,
-	selectBacktests,
-	selectBacktestsInformation,
-} from '../../store/backtests/backtests.select';
+import { selectBacktests } from '../../store/backtests/backtests.select';
 import { Backtest, BacktestResult } from '../../gql/graphql';
-import { DataGrid, GridColDef, GridSelectionModel } from '@mui/x-data-grid';
-import { GridValueFormatterParams, GridValueGetterParams } from '@mui/x-data-grid/models';
-import {
-	localStringOptions,
-	localDateStringOptions,
-} from '../backtest-tables/bcaktest-tables.component';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { GridValueFormatterParams } from '@mui/x-data-grid/models';
+import { localStringOptions } from '../../utils/date/date.utils';
+import { sxDashboard } from '../../utils/theme/theme.util';
+import { FilteringSetting } from '../../utils/data-grid/data-grid.utils';
 
 import Box from '@mui/material/Box';
 
 import BacktestTableTitle from '../backtest-table-title/backtest-table-title.component';
+import TableFilteringPanel from '../table-filtering-panel/table-filtering-panel.component';
 
-const dataGridColumn: GridColDef[] = [
+const dataGridColumn: GridColDef<BacktestResult>[] = [
 	{ field: 'code', headerName: '股號' },
 	{
 		field: 'tradeType',
@@ -48,6 +45,45 @@ const dataGridColumn: GridColDef[] = [
 	{ field: 'cost', headerName: '成本' },
 ];
 
+const filteringSettings: FilteringSetting<BacktestResult>[] = [
+	{
+		field: 'code',
+		fieldName: '股號',
+		type: 'string',
+	},
+	{
+		field: 'tradeType',
+		fieldName: '交易方向',
+		type: 'string',
+		valueGetter: value => (value === 1 ? '多' : '空'),
+	},
+	{
+		field: 'entryPoint',
+		fieldName: '進場點',
+		type: 'dateTime',
+	},
+	{
+		field: 'leavePoint',
+		fieldName: '出場點',
+		type: 'dateTime',
+	},
+	{
+		field: 'roi',
+		fieldName: '投報率',
+		type: 'number',
+	},
+	{
+		field: 'profit',
+		fieldName: '獲利',
+		type: 'number',
+	},
+	{
+		field: 'cost',
+		fieldName: '成本',
+		type: 'number',
+	},
+];
+
 export type GetDataById<T> = (dataset: T[], id: string | number | null) => T | null;
 
 const getBacktestById: GetDataById<Backtest> = (dataset, id) => {
@@ -70,36 +106,75 @@ const BacktestResultsTable: FC<BacktestResultsTableProps> = ({
 	setFilteredBacktestResults,
 }) => {
 	const backtests = useAppSelector(selectBacktests);
-	const [selectedBacktest, setSelectedBacktest] = useState<Backtest | null>(null);
-	const [backtestResults, setBacktestResults] = useState<BacktestResult[]>([]);
+	const selectedBacktest = useMemo<Backtest | null>(
+		() => getBacktestById(backtests, selectedBacktestId),
+		[backtests, selectedBacktestId]
+	);
+	const backtestResults = useMemo(
+		() => (selectedBacktest ? selectedBacktest.results : []),
+		[selectedBacktest]
+	);
+	const [filteringRows, setFilteringRows] = useState<BacktestResult[]>(backtestResults);
+
+	const { palette } = useTheme();
 
 	useEffect(() => {
-		setSelectedBacktest(getBacktestById(backtests, selectedBacktestId));
-	}, [selectedBacktestId]);
-
-	useEffect(() => {
-		if (selectedBacktest) {
-			setBacktestResults(selectedBacktest.results);
-			setFilteredBacktestResults(selectedBacktest.results);
-		} else {
-			setBacktestResults([]);
-			setFilteredBacktestResults([]);
-		}
-	}, [selectedBacktest]);
+		setFilteredBacktestResults(filteringRows);
+	}, [filteringRows]);
 
 	return (
 		<Box sx={{ width: '100%' }}>
 			<BacktestTableTitle text="回測結果" />
-			<DataGrid
-				sx={{ height: 350 }}
-				columns={dataGridColumn}
-				rows={backtestResults}
-				onSelectionModelChange={newSelectionModel => {
-					if (newSelectionModel.length > 0)
-						setSelectedBacktestResult(getBacktestResultById(backtestResults, newSelectionModel[0]));
-					else setSelectedBacktestResult(null);
-				}}
-			/>
+			<Box sx={{ ...sxDashboard }}>
+				<DataGrid
+					disableColumnFilter
+					sx={{
+						height: 350,
+						'& .MuiDataGrid-row.positive, & .MuiDataGrid-row.positive.Mui-selected:hover': {
+							backgroundColor: palette.red.main + '80',
+						},
+						'& .MuiDataGrid-row.negative, & .MuiDataGrid-row.negative.Mui-selected:hover': {
+							backgroundColor: palette.green.main + '50',
+						},
+						'& .MuiDataGrid-row.Mui-selected': {
+							border: '1px solid',
+							borderColor: palette.primary.light,
+						},
+						'& .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell': {
+							borderBottom: 'unset',
+						},
+						'& .MuiDataGrid-cell:focus': {
+							outline: 'unset',
+						},
+					}}
+					columns={dataGridColumn}
+					rows={filteringRows}
+					getRowClassName={params =>
+						params.row.profit > 0 ? 'positive' : params.row.profit < 0 ? 'negative' : ''
+					}
+					onSelectionModelChange={newSelectionModel => {
+						if (newSelectionModel.length > 0) {
+							setSelectedBacktestResult(
+								getBacktestResultById(backtestResults, newSelectionModel[0])
+							);
+							setTimeout(
+								() => document.querySelector('#kbar')?.scrollIntoView({ behavior: 'smooth' }),
+								0
+							);
+						} else setSelectedBacktestResult(null);
+					}}
+					components={{
+						Toolbar: TableFilteringPanel,
+					}}
+					componentsProps={{
+						toolbar: {
+							originalRows: backtestResults,
+							filteringSettings: filteringSettings,
+							setFilteringRows: setFilteringRows,
+						},
+					}}
+				/>
+			</Box>
 		</Box>
 	);
 };

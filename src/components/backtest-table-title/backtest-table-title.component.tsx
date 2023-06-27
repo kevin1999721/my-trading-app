@@ -7,7 +7,7 @@ type BacktestTableTitleProps = {
 
 const BacktestTableTitle: FC<BacktestTableTitleProps> = ({ text }) => {
 	return (
-		<Typography variant="h5" gutterBottom>
+		<Typography sx={{ marginBottom: '10px' }} variant="h6">
 			{text}
 		</Typography>
 	);

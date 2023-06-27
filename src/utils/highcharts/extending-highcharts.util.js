@@ -1,7 +1,5 @@
-import Highcharts from 'highcharts/highstock';
-import indicators from 'highcharts/indicators/indicators-all';
 import U from 'highcharts/es-modules/Core/Utilities';
-export const customHighcharts = H => {
+export const extendingHighcharts = H => {
 	if (H.Series.types.stochastic) {
 		H.Series.types.stochastic.prototype.getValues = function (series, params) {
 			let timestamps = series.xData,
@@ -145,7 +143,6 @@ export const customHighcharts = H => {
 			// disallow duplicate timers (#1728, #1766)
 			U.clearTimeout(this.hideTimer);
 			delay = pick(delay, this.options.hideDelay);
-			console.log(tooltip);
 			if (!this.isHidden && delay !== 0) {
 				this.hideTimer = syncTimeout(function () {
 					// If there is a delay, do fadeOut with the default duration. If
@@ -157,4 +154,20 @@ export const customHighcharts = H => {
 			}
 		};
 	}
+
+	// if (H.Axis) {
+	// 	H.Axis.prototype.setExtremes = function (proceed) {
+	// 		var args = Array.prototype.slice.call(arguments, 1);
+
+	// 		if (isNaN(args[0])) {
+	// 			args[0] = undefined;
+	// 		}
+
+	// 		if (isNaN(args[1])) {
+	// 			args[1] = undefined;
+	// 		}
+
+	// 		return proceed.apply(this, args);
+	// 	};
+	// }
 };

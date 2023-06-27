@@ -1,5 +1,5 @@
 import { useState, useEffect, FC } from 'react';
-import { TextField, Box, Paper } from '@mui/material';
+import { TextField, Box, Paper, TextFieldProps } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
@@ -11,9 +11,13 @@ const defalutDateRangeField = {
 type DateRangePickerProps = {
 	setStartDate: (value: Date | null) => void;
 	setEndDate: (value: Date | null) => void;
+	textFieldProps?: TextFieldProps;
 };
-
-const DateRangePicker: FC<DateRangePickerProps> = ({ setStartDate, setEndDate }) => {
+const DateRangePicker: FC<DateRangePickerProps> = ({
+	setStartDate,
+	setEndDate,
+	textFieldProps,
+}) => {
 	const [dateRange, setDateRange] = useState(defalutDateRangeField);
 
 	useEffect(() => {
@@ -26,7 +30,7 @@ const DateRangePicker: FC<DateRangePickerProps> = ({ setStartDate, setEndDate })
 			sx={{
 				display: 'flex',
 				justifyContent: 'center',
-				gap: '20px',
+				gap: '10px',
 			}}
 		>
 			<LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -43,7 +47,8 @@ const DateRangePicker: FC<DateRangePickerProps> = ({ setStartDate, setEndDate })
 					inputFormat="yyyy/MM/dd"
 					renderInput={params => (
 						<TextField
-							sx={{ width: 150, flex: 1 }}
+							{...textFieldProps}
+							sx={{ flex: 1 }}
 							{...params}
 							inputProps={{ ...params.inputProps, placeholder: 'yyyy/mm/dd', readOnly: true }}
 						/>
@@ -62,7 +67,8 @@ const DateRangePicker: FC<DateRangePickerProps> = ({ setStartDate, setEndDate })
 					inputFormat="yyyy/MM/dd"
 					renderInput={params => (
 						<TextField
-							sx={{ width: 150, flex: 1 }}
+							{...textFieldProps}
+							sx={{ flex: 1 }}
 							{...params}
 							inputProps={{ ...params.inputProps, placeholder: 'yyyy/mm/dd', readOnly: true }}
 						/>

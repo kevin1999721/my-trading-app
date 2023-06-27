@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BacktestResult } from '../../gql/graphql';
+import { KbarFrequency } from '../../utils/highcharts/highcharts.util';
 
 import Box from '@mui/material/Box';
 
@@ -8,34 +9,17 @@ import BacktestStatisticsTable from '../backtest-statistics-table/backtest-stati
 import BacktestResultsTable from '../backtest-results-table/backtest-results-table.component';
 import Kbar from '../kbar/kbar.component';
 
-export const localDateStringOptions: Intl.DateTimeFormatOptions = {
-	year: 'numeric',
-	month: '2-digit',
-	day: '2-digit',
-};
-
-export const localStringOptions: Intl.DateTimeFormatOptions = {
-	year: 'numeric',
-	month: '2-digit',
-	day: '2-digit',
-	hour: '2-digit',
-	minute: '2-digit',
-	second: '2-digit',
-	hour12: false,
-};
-
 const BacktestTables = () => {
 	const [selectedBacktestId, setSelectedBacktestId] = useState<string | number | null>(null);
 	const [filteredBacktestResults, setFilteredBacktestResults] = useState<BacktestResult[]>([]);
 	const [selectedBacktestResult, setSelectedBacktestResult] = useState<BacktestResult | null>(null);
-	console.log(selectedBacktestResult);
 
 	useEffect(() => {
 		setSelectedBacktestResult(null);
 	}, [selectedBacktestId]);
 
 	return (
-		<Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+		<Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 			<BacktestHistoriesTable setSelectedBacktestId={setSelectedBacktestId} />
 			<BacktestResultsTable
 				selectedBacktestId={selectedBacktestId}
@@ -45,9 +29,37 @@ const BacktestTables = () => {
 			<BacktestStatisticsTable backtestResults={filteredBacktestResults} />
 			{selectedBacktestResult?.code && (
 				<Kbar
-					code={selectedBacktestResult.code}
-					startDate={new Date(selectedBacktestResult.entryPoint).toLocaleDateString('sv')}
-					endDate={new Date(selectedBacktestResult.leavePoint).toLocaleDateString('sv')}
+					kbarsArgs={{
+						code: selectedBacktestResult.code,
+						startDate: new Date(selectedBacktestResult.entryPoint).toLocaleDateString('sv'),
+						endDate: new Date(selectedBacktestResult.leavePoint).toLocaleDateString('sv'),
+						period: 5,
+						frequency: KbarFrequency.T,
+						requiredPreTradeDays: 5,
+					}}
+					title={`${selectedBacktestResult.name} ${selectedBacktestResult.code}`}
+					flags={{
+						type: 'flags',
+						id: 'flags',
+						data: [
+							{
+								x:
+									new Date(selectedBacktestResult.entryPoint).getTime() -
+									new Date().getTimezoneOffset() * 60000,
+								title: '進場點',
+							},
+							{
+								x:
+									new Date(selectedBacktestResult.leavePoint).getTime() -
+									new Date().getTimezoneOffset() * 60000,
+								title: '出場點',
+							},
+						],
+						onSeries: 'candlestick',
+						shape: 'squarepin',
+						width: 45,
+						y: -30,
+					}}
 				/>
 			)}
 		</Box>

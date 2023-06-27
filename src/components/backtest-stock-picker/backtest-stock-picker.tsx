@@ -1,6 +1,8 @@
 import { useState, FC, ChangeEvent } from 'react';
 import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Box } from '@mui/material';
 import { SelectInputProps } from '@mui/material/Select/SelectInput';
+import { useAppSelector } from '../../store/hooks';
+import { selectStockSelectionStrategies } from '../../store/backtests/backtests.select';
 
 import BacktestFormInput from '../backtest-form-input/backtest-form-input';
 import StockSearhForm from '../stock-search-form/stock-searh-form.component';
@@ -13,27 +15,6 @@ const backtestFormFieldsName = {
 	stocksCode: 'stocksCode',
 };
 
-const stockSelectionStrategies = [
-	{
-		id: 1,
-		type: 1,
-		name: '自訂選股策略 1',
-		description: '自訂選股策略 1 ...',
-	},
-	{
-		id: 2,
-		type: 0,
-		name: '半導體',
-		description: '導體類股 ...',
-	},
-	{
-		id: 3,
-		type: 0,
-		name: '生醫',
-		description: '生醫類股 ...',
-	},
-];
-
 type BacktestStockPicker = {
 	onSelectChange?: SelectInputProps<number>['onChange'];
 	setSelectedStockCode: (code: string | null) => void;
@@ -45,6 +26,7 @@ const BacktestStockPicker: FC<BacktestStockPicker> = ({
 	setSelectedStockCode,
 	resetStcoks,
 }) => {
+	const stockSelectionStrategies = useAppSelector(selectStockSelectionStrategies);
 	const [radioValue, setRadioValue] = useState('0');
 	const onRadioGroupChange = (event: ChangeEvent<HTMLInputElement>) => {
 		setRadioValue(event.target.value);
@@ -77,8 +59,20 @@ const BacktestStockPicker: FC<BacktestStockPicker> = ({
 			}}
 		>
 			<FormControl>
-				{/* <FormLabel>Gender</FormLabel> */}
-				<RadioGroup row defaultValue="0" onChange={onRadioGroupChange}>
+				<RadioGroup
+					sx={{
+						marginBottom: '10px',
+						'& .MuiFormControlLabel-labelPlacementEnd': {
+							marginLeft: 'unset',
+						},
+						'& .MuiFormControlLabel-labelPlacementEnd .MuiRadio-root': {
+							padding: 'unset',
+						},
+					}}
+					row
+					defaultValue="0"
+					onChange={onRadioGroupChange}
+				>
 					<FormControlLabel value="0" control={<Radio />} label="選股策略" />
 					<FormControlLabel value="1" control={<Radio />} label="個股" />
 				</RadioGroup>

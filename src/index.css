@@ -1,10 +1,6 @@
 * {
 	margin: 0;
 	padding: 0;
+	list-style: none;
 	box-sizing: border-box;
-}
-
-body {
-	font-family: '"Noto Sans TC"', 'sans-serif', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial',
-		'"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"';
 }
