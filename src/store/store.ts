@@ -1,4 +1,4 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import { configureStore, combineReducers, Middleware } from '@reduxjs/toolkit';
 import backtestsReducer from './backtests/bcaktests.slice';
 import themeReducer from './theme/theme.slice';
 import stockReducer from './stock/stock.slice';
@@ -38,6 +38,10 @@ const persistConfig: PersistConfig<RootState> = {
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
+const middleware = [process.env.NODE_ENV !== 'production' && logger].filter(
+	(middleware): middleware is Middleware => Boolean(middleware)
+);
+
 export const store = configureStore({
 	reducer: persistedReducer,
 	middleware: getDefaultMiddleware => {
@@ -60,7 +64,7 @@ export const store = configureStore({
 				],
 				ignoredPaths: ['user.currentUser'],
 			},
-		}).concat(logger);
+		}).concat(middleware);
 	},
 });
 
