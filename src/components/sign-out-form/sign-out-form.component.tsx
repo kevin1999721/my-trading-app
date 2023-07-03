@@ -10,7 +10,7 @@ const SignOutForm = () => {
 	};
 
 	const onCancelButtonClick = () => {
-		dispatch(toggleIsAuthenticationFormOpen());
+		dispatch(toggleIsAuthenticationFormOpen(false));
 	};
 
 	return (

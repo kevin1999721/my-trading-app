@@ -32,15 +32,15 @@ const DefaultHeader = () => {
 	};
 
 	const onAuthenticationButtonClick = () => {
-		dispatch(toggleIsAuthenticationFormOpen());
+		dispatch(toggleIsAuthenticationFormOpen(true));
 	};
 
 	const authenticationFormCloseHandler = () => {
-		dispatch(toggleIsAuthenticationFormOpen());
+		dispatch(toggleIsAuthenticationFormOpen(false));
 	};
 
 	useEffect(() => {
-		dispatch(toggleIsAuthenticationFormOpen());
+		dispatch(toggleIsAuthenticationFormOpen(false));
 	}, [currentUser]);
 
 	return (
