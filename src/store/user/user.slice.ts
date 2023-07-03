@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { FirebaseError } from 'firebase/app';
 import {
 	signInWithEmailAndPassword,
@@ -127,8 +127,8 @@ export const userSlice = createSlice({
 	name: 'user',
 	initialState,
 	reducers: {
-		toggleIsAuthenticationFormOpen: state => {
-			state.isAuthenticationFormOpen = !state.isAuthenticationFormOpen;
+		toggleIsAuthenticationFormOpen: (state, action: PayloadAction<boolean>) => {
+			state.isAuthenticationFormOpen = action.payload;
 		},
 	},
 	extraReducers: builder => {
