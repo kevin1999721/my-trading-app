@@ -52,6 +52,7 @@ export const userSignUp = createAsyncThunk<
 		const { email, password, displayName } = args;
 		await signUpWithEmailAndPassword(email, password);
 		await updateAuthCurrentUser({ displayName });
+		dispatch(userSignInSuccess());
 	} catch (error) {
 		dispatch(userSignInError(error));
 	}
